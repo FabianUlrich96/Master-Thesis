@@ -1,0 +1,47 @@
+version: '3.6'
+services:
+  dataapidb:
+    build: ./database
+    container_name: dataapidb
+    restart: always
+    ports:
+      - '6001:3306'
+    expose:
+      - '3306'
+    command: [ "mysqld", "--default-authentication-plugin=mysql_native_password" ]
+    environment:
+      MYSQL_DATABASE: 'dataapi'
+      MYSQL_USER: 'dataapi'
+      MYSQL_PASSWORD: 'fnmwm4d833834erjn'
+      MYSQL_ROOT_PASSWORD: 'CVC93DA3D8kksa5M'
+    volumes:
+      - /home/dataapi/volumes/db:/var/lib/mysql
+      - ./database/database.sql:/docker-entrypoint-initdb.d/database.sql      
+      
+  dataapifrontend:
+    build: ./frontend
+    container_name: dataapifrontend
+    restart: always
+    ports:
+      - "6002:3000"
+    depends_on:
+      - dataapidb
+      - dataapibackend
+  dataapibackend:
+    build: ./backend
+    container_name: dataapibackend
+    restart: always
+    ports:
+      - "6003:5000"
+    volumes:
+      - /home/dataapi/volumes/log:/app/log
+    depends_on:
+      - dataapidb
+  dataapiadmin:
+    image: phpmyadmin/phpmyadmin:latest
+    container_name: dataapiadmin
+    restart: always
+    ports:
+      - '6004:80'
+    environment:
+      - PMA_HOST=dataapidb
