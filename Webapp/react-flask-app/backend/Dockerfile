@@ -12,4 +12,4 @@ WORKDIR /App
 
 COPY . ./
 
-CMD /bin/bash -c "source activate flaskenv && python app.py"
+CMD /bin/bash -c "source activate flaskenv && python -u app.py"

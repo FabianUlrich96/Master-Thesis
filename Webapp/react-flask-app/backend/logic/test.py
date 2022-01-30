@@ -1,17 +1,19 @@
 import datetime
 
-from logic.DataApiConnection import DataApiConnection
+from logic.YouTubeDataApi import YouTubeDataApi
 
-key = "AIzaSyDVseWOuiO1diHvWYZ0-76WM0RKEWo4DgE"
 
-connection = DataApiConnection(key)
+def test(db):
+    key = "AIzaSyDVseWOuiO1diHvWYZ0-76WM0RKEWo4DgE"
 
-DataApiConnection.new_connection(connection)
+    connection = YouTubeDataApi(key, db)
 
-search_query = "E-"
+    YouTubeDataApi.new_connection(connection)
 
-published_before = datetime.datetime(2022, 1, 2).isoformat("T") + "Z"
-published_after = datetime.datetime(2022, 1, 1).isoformat("T") + "Z"
-print(published_after)
+    search_query = "E-"
 
-DataApiConnection.get_video_info(connection, search_query, published_before, published_after)
+    published_before = datetime.datetime(2022, 1, 2).isoformat("T") + "Z"
+    published_after = datetime.datetime(2022, 1, 1).isoformat("T") + "Z"
+    print(published_after)
+
+    YouTubeDataApi.execute_search_query(connection, search_query, published_before, published_after)
