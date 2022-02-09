@@ -8,7 +8,7 @@ RUN ["conda", "create", "-n", "flaskenv", "python=3.7"]
 
 RUN /bin/bash -c "source activate flaskenv  && pip install --trusted-host pypi.python.org -r /requirements.txt"
 
-WORKDIR /App
+WORKDIR /flaskapp
 
 COPY . ./
 

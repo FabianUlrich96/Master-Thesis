@@ -1,5 +1,8 @@
 Flask>=2.0.2
 PyMySQL
 Flask-SQLAlchemy
+flask-marshmallow
+marshmallow-sqlalchemy
 google-api-python-client
 pandas
+flask-cors

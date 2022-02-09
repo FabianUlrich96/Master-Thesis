@@ -1,8 +1,9 @@
+import datetime
 import googleapiclient.discovery
 import pandas as pd
 from googleapiclient.errors import HttpError
 
-from databaseObjects.search_query import save_search_query
+from database.video_list import save_video_list
 import logger
 
 log = logger.create_logger(__name__)
@@ -57,10 +58,15 @@ class YouTubeDataApi:
                             result_id.append(item["id"]["channelId"])
                         except KeyError:
                             result_id.append(None)
-                data = {'kind': kind, 'result_id': result_id}
+                data = {'kind': kind, 'video_id': result_id}
             # Save each badge to database
                 dataframe = pd.DataFrame(data)
-                save_search_query(self.db, dataframe)
+                dataframe['job'] = 1
+                dataframe['page'] = 1
+                now = datetime.datetime.now()
+                date_now = now.strftime("%Y/%m/%d")
+                dataframe['date'] = date_now
+                save_video_list(self.db, dataframe)
 
                 print(dataframe)
         except TypeError as err:

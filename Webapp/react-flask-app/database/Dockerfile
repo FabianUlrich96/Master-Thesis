@@ -1,5 +1,5 @@
 FROM mysql/mysql-server:latest
 
-WORKDIR /app
+WORKDIR /usr/src
 
 COPY database.sql ./

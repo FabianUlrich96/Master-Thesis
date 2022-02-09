@@ -1,37 +1,20 @@
-from flask import Flask
-import os
-from flask_sqlalchemy import SQLAlchemy
+from flask_cors import CORS
 import logger
-from logic.test import test
-
+from app_config import app, db
+from routes.apis_route import apis_blueprint
+from routes.jobs_route import jobs_blueprint
+from routes.videolist_route import videos_blueprint
+from routes.commentlist_route import comments_blueprint
 log = logger.create_logger(__name__)
-app = Flask(__name__)
-log.info("Flask server started!")
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://{}:{}@{}/{}'.format(
-    os.getenv('DB_USER', 'dataapi'),
-    os.getenv('DB_PASSWORD', 'fnmwm4d833834erjn'),
-    os.getenv('DB_HOST', 'dataapidb'),
-    os.getenv('DB_NAME', 'dataapi')
-)
-db = SQLAlchemy(app)
+db.create_all()
+CORS(app)
 
-test(db)
-
-
-@app.route('/status')
-def status():
-    return 'Backend running!'
-
-
-@app.route('/database')
-def connection():
-    if db is not None:
-        status_message = "Database Connected!"
-    else:
-        status_message = "Database not Connected!"
-
-    return status_message
+app.register_blueprint(apis_blueprint)
+app.register_blueprint(jobs_blueprint)
+app.register_blueprint(videos_blueprint)
+app.register_blueprint(comments_blueprint)
 
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0')
+
