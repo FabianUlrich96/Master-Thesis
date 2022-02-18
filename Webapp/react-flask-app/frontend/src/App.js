@@ -3,14 +3,20 @@ import {useRoutes} from 'hookrouter'
 import Routes from './router'
 import Header from "./components/nav/Header"
 import {Container} from "react-bootstrap"
+import Store from "./Store"
+import NotFound from "./components/pages/NotFound"
+
 
 function App() {
+    const match = useRoutes(Routes)
     return (
         <>
-            <Container fluid>
-                <Header/>
-                {useRoutes(Routes)}
-            </Container>
+            <Store>
+                <Container fluid>
+                    <Header/>
+                    <div className="container">{match || <NotFound/>}</div>
+                </Container>
+            </Store>
         </>
     )
 }

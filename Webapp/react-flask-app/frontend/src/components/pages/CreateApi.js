@@ -1,67 +1,116 @@
 import {Button, Col, Form, Row} from "react-bootstrap"
 import axios from "axios"
 import {useState} from "react"
+import {A, navigate} from "hookrouter"
 
 function CreateApi() {
     const host = window.location.href
     let host_ip = host.split(':')[1]
-    const [name, setName] = useState()
-    const [token, setToken] = useState()
-    const [service, setService] = useState()
 
+    const [form, setForm] = useState({})
+    const [errors, setErrors] = useState({})
 
-    function onSubmit(values) {
-        values.preventDefault()
-        let data = {
-            name: name,
-            token: token,
-            service: service
-        }
+    const setField = (field, value) => {
+        setForm({
+            ...form,
+            [field]: value
+        })
 
-        console.log(data)
-
-        axios.post(`http://${host_ip}:1020/apis`, data).then(async res => {
-            if (res.status === 200) {
-                console.log(res.status)
-            } else {
-                console.log(res.status)
-            }
+        if (!!errors[field]) setErrors({
+            ...errors,
+            [field]: null
         })
     }
 
-    return (
-        <>
-            <Row className={"pageContainer"}>
-                <Col>
-                    <Form onSubmit={onSubmit}>
-                        <h2>Add API</h2>
-                        <Form.Group className="mb-3" controlId="formName">
-                            <Form.Label>API Name</Form.Label>
-                            <Form.Control type="text" placeholder="Enter API Name"
-                                          onChange={e => setName(e.target.value)}/>
-                        </Form.Group>
-                        <Form.Group className="mb-3" controlId="formToken">
-                            <Form.Label>API Token</Form.Label>
-                            <Form.Control type="text" placeholder="Enter API Token"
-                                          onChange={e => setToken(e.target.value)}/>
-                        </Form.Group>
-                        <Form.Group className="mb-3" controlId="formService">
-                            <Form.Label>Service Name</Form.Label>
-                            <Form.Select aria-label="Default select example" onChange={e => setService(e.target.value)}>
-                                <option>Select a Service</option>
-                                <option value="g_translate">Google Translate</option>
-                                <option value="youtube">YouTube</option>
-                            </Form.Select>
-                        </Form.Group>
+    const findFormErrors = () => {
+        const {name, token, service} = form
+        const newErrors = {}
+        // name errors
+        if (!name || name === '') newErrors.name = 'cannot be blank!'
+        else if (name.length > 30) newErrors.name = 'name is too long!'
+        // token errors
+        if (!token || token === '') newErrors.token = 'cannot be blank!'
+        // service errors
+        if (!service || service === '') newErrors.service = 'cannot be blank!'
 
-                        <Button variant="primary" type="submit">
-                            Submit
-                        </Button>
-                    </Form>
-                </Col>
-            </Row>
-        </>
-    )
+        return newErrors
+    }
+
+    function onSubmit(values) {
+        values.preventDefault()
+        const newErrors = findFormErrors()
+        if (Object.keys(newErrors).length > 0) {
+            // We got errors!
+            setErrors(newErrors)
+        } else {
+            let data = {
+                name: form.name,
+                token: form.token,
+                service: form.service
+            }
+
+
+            axios.post(`http://${host_ip}:1020/apis`, data).then(async res => {
+                if (res.status === 200) {
+                    console.log(res.status)
+                    navigate('/viewapis')
+                } else {
+                    console.log(res.status)
+                }
+            })
+        }
+    }
+
+    const session_token = sessionStorage.getItem("access_token")
+    if (session_token && session_token !== "" && session_token !== undefined) {
+        return (
+            <>
+                <Row className={"pageContainer"}>
+                    <Col>
+                        <Form onSubmit={onSubmit}>
+                            <h2>Add API</h2>
+                            <Form.Group className="mb-3" controlId="formName">
+                                <Form.Label>API Name</Form.Label>
+                                <Form.Control type="text" placeholder="Enter API Name"
+                                              onChange={e => setField('name', e.target.value)}
+                                              isInvalid={!!errors.name}/>
+                            </Form.Group>
+                            <Form.Group className="mb-3" controlId="formToken">
+                                <Form.Label>API Token</Form.Label>
+                                <Form.Control type="text" placeholder="Enter API Token"
+                                              onChange={e => setField('token', e.target.value)}
+                                              isInvalid={!!errors.token}/>
+                            </Form.Group>
+                            <Form.Group className="mb-3" controlId="formService">
+                                <Form.Label>Service Name</Form.Label>
+                                <Form.Select aria-label="Default select example"
+                                             onChange={e => setField('service', e.target.value)}
+                                             isInvalid={!!errors.service}>
+                                    <option>Select a Service</option>
+                                    <option value="g_translate">Google Translate</option>
+                                    <option value="youtube">YouTube</option>
+                                </Form.Select>
+                            </Form.Group>
+
+                            <Button variant="primary" type="submit">
+                                Submit
+                            </Button>
+                        </Form>
+                    </Col>
+                </Row>
+            </>
+        )
+    } else {
+        return (
+            <>
+                <Row className={"pageContainer"}>
+                    <Col>
+                        <p> 401 Unauthorized please login to view the content <A href="/">login</A>.</p>
+                    </Col>
+                </Row>
+            </>
+        )
+    }
 }
 
 export default CreateApi

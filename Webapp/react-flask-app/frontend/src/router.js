@@ -1,11 +1,11 @@
 import React from "react"
-import Login from "./components/pages/login"
-import Home from "./components/pages/home"
-import VideoScraper from "./components/pages/videoScraper"
-import CommentScraper from "./components/pages/commentScraper"
-import Translator from "./components/pages/translator"
+import Login from "./components/pages/Login"
+import Home from "./components/pages/Home"
+import VideoScraper from "./components/pages/VideoScraper"
+import CommentScraper from "./components/pages/CommentScraper"
+import Translator from "./components/pages/Translator"
 import CreateApi from "./components/pages/CreateApi"
-import ViewApis from "./components/pages/viewApis"
+import ViewApis from "./components/pages/ViewApis"
 
 
 const routes = {

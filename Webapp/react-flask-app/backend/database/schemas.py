@@ -1,5 +1,10 @@
-from database.models import Apis, Jobs, VideoList, CommentList
+from database.models import Users, Apis, Jobs, VideoList, CommentList, ReplyList
 from app_config import ma
+
+
+class UsersSchema(ma.SQLAlchemyAutoSchema):
+    class Meta:
+        model = Users
 
 
 class ApisSchema(ma.SQLAlchemyAutoSchema):
@@ -20,3 +25,8 @@ class VideoListSchema(ma.SQLAlchemyAutoSchema):
 class CommentListSchema(ma.SQLAlchemyAutoSchema):
     class Meta:
         model = CommentList
+
+
+class ReplySchema(ma.SQLAlchemyAutoSchema):
+    class Meta:
+        model = ReplyList

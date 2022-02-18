@@ -5,3 +5,19 @@
     padding: 50px;
     background-color: white;
 }
+
+.headerButton{
+    background: #fff;
+    color: red;
+    border: 2px solid red;
+    border-radius: 3px;
+    padding: 5px 10px;
+    text-transform: uppercase;
+}
+
+.headerButton:hover{
+    background: red;
+    color: #fff;
+    border: 2px solid white;
+
+}

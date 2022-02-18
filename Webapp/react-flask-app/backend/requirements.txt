@@ -6,3 +6,5 @@ marshmallow-sqlalchemy
 google-api-python-client
 pandas
 flask-cors
+pause
+Flask-JWT-Extended
