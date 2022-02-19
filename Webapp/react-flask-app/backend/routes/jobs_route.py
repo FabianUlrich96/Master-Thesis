@@ -30,6 +30,7 @@ def jobs_all():
         log.info(all_data)
         selected_job = None
         name = None
+        api = None
         query = None
         published_before = None
         published_after = None
@@ -48,9 +49,10 @@ def jobs_all():
         done = False
         failed = False
 
-        api = all_data["api"]
-        api_row = db.session.query(Apis).filter(Apis.name == api).first()
-        key = api_row.token
+        if "api" in all_data:
+            api = all_data["api"]
+            api_row = db.session.query(Apis).filter(Apis.name == api).first()
+            key = api_row.token
 
         job_id = ""
         try:
@@ -77,6 +79,22 @@ def jobs_all():
             job = YouTubeDataApi(job_id, key, db)
             YouTubeDataApi.new_connection(job)
             YouTubeDataApi.execute_search_query(job, query, published_before, published_after)
+
+        if job_type == "video_loader":
+            file = all_data['file']
+
+            video_df = pd.DataFrame(file)
+            new_header = video_df.iloc[0]
+            video_df = video_df[1:]
+            video_df.columns = new_header
+            video_df = video_df.drop('id', axis=1)
+            video_df = video_df.drop('job', axis=1)
+            video_df['job'] = job_id
+            try:
+                video_df.to_sql('video_list', con=db.engine, if_exists='append', chunksize=1000, index=False)
+            except IntegrityError as e:
+                log.error(e)
+
         if job_type == "translation":
             pass
         return 'Ok'

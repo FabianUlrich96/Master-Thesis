@@ -40,11 +40,11 @@ function Header() {
                                 <Navbar.Toggle aria-controls="basic-navbar-nav"/>
                                 <Navbar.Collapse className="justify-content-end">
                                     <Nav activeKey={location.pathname} className="container-fluid">
-                                        <NavDropdown title="Scraper" id="basic-nav-dropdown">
+                                        <NavDropdown title="Video" id="basic-nav-dropdown">
                                             <NavDropdown.Item href="/createvideojob">Video Scraper</NavDropdown.Item>
-                                            <NavDropdown.Item href="/createcommentjob">Comment
-                                                Scraper</NavDropdown.Item>
+                                            <NavDropdown.Item href="/loadvideos">Load Videos</NavDropdown.Item>
                                         </NavDropdown>
+                                        <Nav.Link href="/createcommentjob">Comment Scraper</Nav.Link>
                                         <Nav.Link href="/translator">Translator</Nav.Link>
                                         <NavDropdown title="API" id="basic-nav-dropdown">
                                             <NavDropdown.Item href="/createapi">Create API</NavDropdown.Item>
