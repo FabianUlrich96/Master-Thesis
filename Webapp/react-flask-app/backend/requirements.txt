@@ -8,3 +8,4 @@ pandas
 flask-cors
 pause
 Flask-JWT-Extended
+google_trans_new

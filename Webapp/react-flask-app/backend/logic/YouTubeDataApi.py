@@ -77,6 +77,7 @@ class YouTubeDataApi(object):
                     now = datetime.now()
                     date_now = now.strftime("%Y/%m/%d")
                     dataframe['date'] = date_now
+                    dataframe['translation'] = None
                     YouTubeDataApi.save_video_list(self, dataframe)
 
                     print(dataframe)

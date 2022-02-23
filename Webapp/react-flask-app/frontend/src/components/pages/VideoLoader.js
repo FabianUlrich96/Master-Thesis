@@ -1,5 +1,5 @@
 import {Button, Col, Form, Row} from "react-bootstrap"
-import {A, navigate} from "hookrouter"
+import {A} from "hookrouter"
 import {useState} from "react"
 import axios from "axios"
 import Papa from 'papaparse'

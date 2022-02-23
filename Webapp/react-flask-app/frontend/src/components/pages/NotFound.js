@@ -1,11 +1,16 @@
+import {Col, Row} from "react-bootstrap"
 
 function NotFound() {
-  return(
-    <div className="NotFound">
-      <h1>404</h1>
-      <h2>Page not found</h2>
-    </div>
-  )
+    return (
+        <>
+            <Row className={"pageContainer"}>
+                <Col>
+                    <h1>404</h1>
+                    <h2>Page not found</h2>
+                </Col>
+            </Row>
+        </>
+    )
 }
 
 export default NotFound

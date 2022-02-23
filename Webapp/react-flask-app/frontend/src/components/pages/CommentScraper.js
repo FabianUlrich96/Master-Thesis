@@ -1,7 +1,10 @@
 import {Button, Col, Form, Row} from "react-bootstrap"
-import {A, navigate} from "hookrouter"
-import {useCallback, useEffect, useState} from "react";
-import axios from "axios";
+import {A} from "hookrouter"
+import {useCallback, useEffect, useState} from "react"
+import axios from "axios"
+import {toast, ToastContainer} from "react-toastify"
+import 'react-toastify/dist/ReactToastify.css'
+
 
 function CommentScraper() {
     const token = sessionStorage.getItem("access_token")
@@ -9,8 +12,8 @@ function CommentScraper() {
     let host_ip = host.split(':')[1]
     const [jobsDatabase, setJobsDatabase] = useState([])
     const [apisDatabase, setApisDatabase] = useState([])
-    const [ form, setForm ] = useState({})
-    const [ errors, setErrors ] = useState({})
+    const [form, setForm] = useState({})
+    const [errors, setErrors] = useState({})
 
     const loadJobs = useCallback(() => {
         axios.get(`http://${host_ip}:1020/jobs`).then((response) => {
@@ -56,21 +59,21 @@ function CommentScraper() {
             [field]: value
         })
 
-        if ( !!errors[field] ) setErrors({
+        if (!!errors[field]) setErrors({
             ...errors,
             [field]: null
         })
     }
     const findFormErrors = () => {
-        const { name, job, api} = form
+        const {name, job, api} = form
         const newErrors = {}
         // name errors
-        if ( !name || name === '' ) newErrors.name = 'cannot be blank!'
-        else if ( name.length > 30 ) newErrors.name = 'name is too long!'
+        if (!name || name === '') newErrors.name = 'cannot be blank!'
+        else if (name.length > 30) newErrors.name = 'name is too long!'
         // jobs errors
-        if ( !job || job === '' ) newErrors.job = 'select a job!'
+        if (!job || job === '') newErrors.job = 'select a job!'
         // api errors
-        if ( !api || api === '' ) newErrors.api = 'select an api!'
+        if (!api || api === '') newErrors.api = 'select an api!'
 
         return newErrors
     }
@@ -78,7 +81,7 @@ function CommentScraper() {
     function onSubmit(values) {
         values.preventDefault()
         const newErrors = findFormErrors()
-        if ( Object.keys(newErrors).length > 0 ) {
+        if (Object.keys(newErrors).length > 0) {
             // We got errors!
             setErrors(newErrors)
         } else {
@@ -91,15 +94,31 @@ function CommentScraper() {
 
 
             axios.post(`http://${host_ip}:1020/jobs`, data).then(async res => {
-                if (res.status === 200) {
-                    console.log(res.status)
-                } else {
-                    console.log(res.status)
-                }
+                const successStatus = res.status
+                const successMessage = `Status code ${successStatus}: Request successful`
+                toast.success(successMessage, {
+                    position: "top-center",
+                    autoClose: 5000,
+                    hideProgressBar: false,
+                    closeOnClick: true,
+                    pauseOnHover: true,
+                    draggable: true,
+                    progress: undefined,
+                })
+            }).catch(err => {
+                const errStatus = err.response.status
+                const errMessage = `Request failed with status code ${errStatus}`
+                toast.error(errMessage, {
+                    position: "top-center",
+                    autoClose: 5000,
+                    hideProgressBar: false,
+                    closeOnClick: true,
+                    pauseOnHover: true,
+                    draggable: true,
+                    progress: undefined,
+                })
             })
-            navigate('/home')
         }
-
     }
 
     useEffect(() => {
@@ -110,6 +129,7 @@ function CommentScraper() {
     if (token && token !== "" && token !== undefined) {
         return (
             <>
+                <ToastContainer/>
                 <Row className={"pageContainer"}>
                     <Col>
                         <Form onSubmit={onSubmit}>
@@ -117,12 +137,12 @@ function CommentScraper() {
                             <Form.Group className="mb-3">
                                 <Form.Label>Job Name</Form.Label>
                                 <Form.Control type="text" placeholder="Enter job name"
-                                              onChange={ e => setField('name', e.target.value) }
-                                              isInvalid={!!errors.name} />
+                                              onChange={e => setField('name', e.target.value)}
+                                              isInvalid={!!errors.name}/>
                             </Form.Group>
                             <Form.Group className="mb-3" controlId="formApi">
                                 <Form.Label>Video Job</Form.Label>
-                                <Form.Control as='select' onChange={ e => setField('job', e.target.value) }
+                                <Form.Control as='select' onChange={e => setField('job', e.target.value)}
                                               isInvalid={!!errors.api}
                                 >
                                     <option value=''>Select a video job:</option>
@@ -131,7 +151,7 @@ function CommentScraper() {
                             </Form.Group>
                             <Form.Group className="mb-3" controlId="formApi">
                                 <Form.Label>API</Form.Label>
-                                <Form.Control as='select' onChange={ e => setField('api', e.target.value) }
+                                <Form.Control as='select' onChange={e => setField('api', e.target.value)}
                                               isInvalid={!!errors.api}
                                 >
                                     <option value=''>Select an api:</option>

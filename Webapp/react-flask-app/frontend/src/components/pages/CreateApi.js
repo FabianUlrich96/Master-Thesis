@@ -2,6 +2,8 @@ import {Button, Col, Form, Row} from "react-bootstrap"
 import axios from "axios"
 import {useState} from "react"
 import {A, navigate} from "hookrouter"
+import {toast, ToastContainer} from "react-toastify"
+import 'react-toastify/dist/ReactToastify.css'
 
 function CreateApi() {
     const host = window.location.href
@@ -51,12 +53,29 @@ function CreateApi() {
 
 
             axios.post(`http://${host_ip}:1020/apis`, data).then(async res => {
-                if (res.status === 200) {
-                    console.log(res.status)
-                    navigate('/viewapis')
-                } else {
-                    console.log(res.status)
-                }
+                const successStatus = res.status
+                const successMessage = `Status code ${successStatus}: Request successful`
+                toast.success(successMessage, {
+                    position: "top-center",
+                    autoClose: 5000,
+                    hideProgressBar: false,
+                    closeOnClick: true,
+                    pauseOnHover: true,
+                    draggable: true,
+                    progress: undefined,
+                })
+            }).catch(err => {
+                const errStatus = err.response.status
+                const errMessage = `Request failed with status code ${errStatus}`
+                toast.error(errMessage, {
+                    position: "top-center",
+                    autoClose: 5000,
+                    hideProgressBar: false,
+                    closeOnClick: true,
+                    pauseOnHover: true,
+                    draggable: true,
+                    progress: undefined,
+                })
             })
         }
     }
@@ -65,6 +84,7 @@ function CreateApi() {
     if (session_token && session_token !== "" && session_token !== undefined) {
         return (
             <>
+                <ToastContainer/>
                 <Row className={"pageContainer"}>
                     <Col>
                         <Form onSubmit={onSubmit}>

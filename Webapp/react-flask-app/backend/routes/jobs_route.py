@@ -5,8 +5,11 @@ from flask import request, jsonify, Blueprint
 from database.models import Jobs, VideoList
 from database.schemas import JobsSchema
 from database.models import Apis
-from database.schemas import ApisSchema
+from database.models import CommentList
+from database.models import ReplyList
 from logic.YouTubeDataApi import YouTubeDataApi
+from logic.GoogleTranslate import GoogleTranslate
+
 import logger
 import pandas as pd
 from sqlalchemy.exc import IntegrityError
@@ -96,7 +99,39 @@ def jobs_all():
                 log.error(e)
 
         if job_type == "translation":
-            pass
+            job = GoogleTranslate(job_id, db)
+            execute = True
+            limit = 1000
+            offset = 0
+            while execute:
+
+                comments = db.session.query(CommentList.comment).filter(
+                    CommentList.translation == None, CommentList.job == selected_job).limit(limit).offset(offset).all()
+                log.info(comments)
+                if not comments:
+                    execute = False
+                else:
+                    offset = offset + 1000
+                    raw_comments = [item[0] for item in comments]
+                    log.info(raw_comments)
+                    GoogleTranslate.translate_text(job, raw_comments, "comment_list")
+
+            execute = True
+            limit = 1000
+            offset = 0
+            while execute:
+
+                comments = db.session.query(ReplyList.comment).filter(
+                    ReplyList.translation == None, ReplyList.job == selected_job).limit(limit).offset(offset).all()
+                if not comments:
+                    execute = False
+                else:
+                    offset = offset + 1000
+                    raw_comments = [item[0] for item in comments]
+                    log.info(raw_comments)
+                    GoogleTranslate.translate_text(job, raw_comments, "reply_list")
+
+
         return 'Ok'
     if request.method == 'DELETE':
         print('job deleted')
