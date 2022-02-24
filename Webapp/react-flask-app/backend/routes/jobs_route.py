@@ -1,5 +1,4 @@
 import datetime
-
 from app_config import db
 from flask import request, jsonify, Blueprint
 from database.models import Jobs, VideoList
@@ -7,17 +6,18 @@ from database.schemas import JobsSchema
 from database.models import Apis
 from database.models import CommentList
 from database.models import ReplyList
-from logic.YouTubeDataApi import YouTubeDataApi
 from logic.GoogleTranslate import GoogleTranslate
-
 import logger
 import pandas as pd
 from sqlalchemy.exc import IntegrityError
+from celery import Celery
 
 log = logger.create_logger(__name__)
 job_schema = JobsSchema()
 jobs_schema = JobsSchema(many=True)
 jobs_blueprint = Blueprint('jobs_blueprint', __name__, template_folder='templates')
+
+celery_context = Celery('simple_worker', broker='redis://redis:6379/0', backend='redis://redis:6379/0')
 
 
 @jobs_blueprint.route('/jobs', methods=['GET', 'POST', 'DELETE'])
@@ -69,19 +69,21 @@ def jobs_all():
             log.error(e)
 
         if job_type == "comment":
-            job = YouTubeDataApi(job_id, key, db)
-            YouTubeDataApi.new_connection(job)
+
             videos = db.session.query(VideoList.video_id).filter(VideoList.job == selected_job).all()
 
             video_ids = [item[0] for item in videos]
 
             for video in video_ids:
-                YouTubeDataApi.get_comments(job, video)
+                pass
+                #YouTubeDataApi.get_comments(job, video)
 
         if job_type == "video":
-            job = YouTubeDataApi(job_id, key, db)
-            YouTubeDataApi.new_connection(job)
-            YouTubeDataApi.execute_search_query(job, query, published_before, published_after)
+            task = celery_context.send_task('tasks.query_videos', kwargs={'key': key, 'job_id': job_id, 'query': query,
+                                                                          'published_before': published_before,
+                                                                          'published_after': published_after})
+
+            r = celery_context.send_task('tasks.longtime_add', kwargs={'x': 1, 'y': 2})
 
         if job_type == "video_loader":
             file = all_data['file']
@@ -130,7 +132,6 @@ def jobs_all():
                     raw_comments = [item[0] for item in comments]
                     log.info(raw_comments)
                     GoogleTranslate.translate_text(job, raw_comments, "reply_list")
-
 
         return 'Ok'
     if request.method == 'DELETE':

@@ -12,4 +12,7 @@ WORKDIR /flaskapp
 
 COPY . ./
 
+EXPOSE 5000
+EXPOSE 1020
+
 CMD /bin/bash -c "source activate flaskenv && python -u app.py"

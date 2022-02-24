@@ -8,4 +8,5 @@ pandas
 flask-cors
 pause
 Flask-JWT-Extended
-google_trans_new
+redis==3.5.0
+celery

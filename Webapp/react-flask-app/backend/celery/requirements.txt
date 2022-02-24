@@ -1,0 +1,6 @@
+celery[redis]
+PyMySQL
+google-api-python-client
+sqlalchemy
+pause
+pandas

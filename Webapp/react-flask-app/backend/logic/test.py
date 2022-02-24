@@ -1,6 +1,6 @@
 import datetime
 
-from logic.YouTubeDataApi import YouTubeDataApi
+from celery.YouTubeDataApi import YouTubeDataApi
 
 
 def test(db):
