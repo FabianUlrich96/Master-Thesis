@@ -1,5 +1,5 @@
 import datetime
-import os
+import logging
 import googleapiclient.discovery
 from sqlalchemy.exc import IntegrityError
 import pandas as pd
@@ -7,10 +7,11 @@ from googleapiclient.errors import HttpError
 import pause
 from datetime import datetime
 import logger
-#from app_config import db
 from sqlalchemy import create_engine
 
 log = logger.create_logger(__name__)
+
+logging.getLogger('googleapicliet.discovery_cache').setLevel(logging.ERROR)
 
 db = create_engine('mysql+pymysql://dataapi:fnmwm4d833834erjn@dataapidb/dataapi?charset=utf8mb4')
 
@@ -112,7 +113,7 @@ def save_comment_list(data):
         log.error(e)
 
 
-def get_comments(self, key, job_id, video_id):
+def get_comments(key, job_id, video_id):
     api_connection = new_connection(key)
     page_token = ""
 

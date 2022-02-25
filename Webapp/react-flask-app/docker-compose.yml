@@ -62,10 +62,32 @@ services:
     environment:
       - PMA_HOST=dataapidb
       
-  celery:
-    build: ./backend/celery
-    container_name: celeryworker
+  celery_video:
+    build: 
+        context: ./backend
+        dockerfile: ./celery/Video_Docker
+    container_name: celery_video
+    
     user: nobody
     depends_on:
       - redis
       - dataapibackend
+  celery_comment:
+    build: 
+        context: ./backend
+        dockerfile: ./celery/Comment_Docker
+    container_name: celery_comment
+    user: nobody
+    depends_on:
+      - redis
+      - dataapibackend
+  celery_translation:
+    build: 
+        context: ./backend
+        dockerfile: ./celery/Translation_Docker
+    container_name: celery_translation
+    user: nobody
+    depends_on:
+      - redis
+      - dataapibackend
+  

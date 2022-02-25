@@ -3,8 +3,7 @@ FROM python:3.8-slim
 COPY requirements.txt /
 RUN pip install -r /requirements.txt
 
-ADD . /celery
-WORKDIR /celery
+ADD . /backend
+WORKDIR backend/celery
 
 CMD celery -A tasks worker --loglevel=info -Q video
-CMD celery -A tasks worker --loglevel=info -Q comments

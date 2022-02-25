@@ -6,7 +6,6 @@ from database.schemas import JobsSchema
 from database.models import Apis
 from database.models import CommentList
 from database.models import ReplyList
-from logic.GoogleTranslate import GoogleTranslate
 import logger
 import pandas as pd
 from sqlalchemy.exc import IntegrityError
@@ -74,16 +73,12 @@ def jobs_all():
 
             video_ids = [item[0] for item in videos]
 
-            for video in video_ids:
-                pass
-                #YouTubeDataApi.get_comments(job, video)
+            task = celery_context.send_task('tasks.query_comments', queue="comments", kwargs={'key': key, 'job_id': job_id, 'video_ids': video_ids})
 
         if job_type == "video":
-            task = celery_context.send_task('tasks.query_videos', kwargs={'key': key, 'job_id': job_id, 'query': query,
+            task = celery_context.send_task('tasks.query_videos', queue="video", kwargs={'key': key, 'job_id': job_id, 'query': query,
                                                                           'published_before': published_before,
                                                                           'published_after': published_after})
-
-            r = celery_context.send_task('tasks.longtime_add', kwargs={'x': 1, 'y': 2})
 
         if job_type == "video_loader":
             file = all_data['file']
@@ -101,22 +96,9 @@ def jobs_all():
                 log.error(e)
 
         if job_type == "translation":
-            job = GoogleTranslate(job_id, db)
-            execute = True
-            limit = 1000
-            offset = 0
-            while execute:
+            task = celery_context.send_task('tasks.translate_comments', queue="translation", kwargs={'job': job_id, 'selected_job': selected_job})
 
-                comments = db.session.query(CommentList.comment).filter(
-                    CommentList.translation == None, CommentList.job == selected_job).limit(limit).offset(offset).all()
-                log.info(comments)
-                if not comments:
-                    execute = False
-                else:
-                    offset = offset + 1000
-                    raw_comments = [item[0] for item in comments]
-                    log.info(raw_comments)
-                    GoogleTranslate.translate_text(job, raw_comments, "comment_list")
+            #GoogleTranslate.translate_text(job, raw_comments, "comment_list")
 
             execute = True
             limit = 1000
@@ -131,7 +113,7 @@ def jobs_all():
                     offset = offset + 1000
                     raw_comments = [item[0] for item in comments]
                     log.info(raw_comments)
-                    GoogleTranslate.translate_text(job, raw_comments, "reply_list")
+                    #GoogleTranslate.translate_text(job, raw_comments, "reply_list")
 
         return 'Ok'
     if request.method == 'DELETE':
