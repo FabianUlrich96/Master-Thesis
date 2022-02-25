@@ -96,24 +96,8 @@ def jobs_all():
                 log.error(e)
 
         if job_type == "translation":
-            task = celery_context.send_task('tasks.translate_comments', queue="translation", kwargs={'job': job_id, 'selected_job': selected_job})
-
-            #GoogleTranslate.translate_text(job, raw_comments, "comment_list")
-
-            execute = True
-            limit = 1000
-            offset = 0
-            while execute:
-
-                comments = db.session.query(ReplyList.comment).filter(
-                    ReplyList.translation == None, ReplyList.job == selected_job).limit(limit).offset(offset).all()
-                if not comments:
-                    execute = False
-                else:
-                    offset = offset + 1000
-                    raw_comments = [item[0] for item in comments]
-                    log.info(raw_comments)
-                    #GoogleTranslate.translate_text(job, raw_comments, "reply_list")
+            task = celery_context.send_task('tasks.translate_comments', queue="translation", kwargs={'selected_job': selected_job})
+            reply_task = celery_context.send_task('tasks.translate_replies', queue="translation", kwargs={'selected_job': selected_job})
 
         return 'Ok'
     if request.method == 'DELETE':

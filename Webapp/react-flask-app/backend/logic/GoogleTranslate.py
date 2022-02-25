@@ -1,3 +1,5 @@
+from sqlalchemy.orm import sessionmaker
+
 import logger
 from database.models import CommentList
 from database.models import ReplyList
@@ -10,9 +12,12 @@ import math
 import time
 from sqlalchemy import create_engine
 
-
 log = logger.create_logger(__name__)
-db = create_engine('mysql+pymysql://dataapi:fnmwm4d833834erjn@dataapidb/dataapi?charset=utf8mb4')
+
+
+engine = create_engine('mysql+pymysql://dataapi:fnmwm4d833834erjn@dataapidb/dataapi?charset=utf8mb4')
+Session = sessionmaker(bind=engine)
+session = Session()
 
 
 def unescape(text):
@@ -76,14 +81,14 @@ def translate_text(comment_array, table):
         if length_check:
             if table == "comment_list":
                 translation = translate(translation_object, to_language="en")
-                translation_db = CommentList.query.filter_by(comment=translation_object).first()
+                translation_db = session.query(CommentList).filter_by(comment=translation_object).first()
                 translation_db.translation = translation
-                db.session.commit()
+                session.commit()
             if table == "reply_list":
                 translation = translate(translation_object, to_language="en")
-                translation_db = ReplyList.query.filter_by(comment=translation_object).first()
+                translation_db = session.query(ReplyList).filter_by(comment=translation_object).first()
                 translation_db.translation = translation
-                db.session.commit()
+                session.commit()
         else:
             translation = ['']
             for translation_string in prepared_string:
@@ -92,10 +97,10 @@ def translate_text(comment_array, table):
 
             translation = ' '.join(translation)
             if table == "comment_list":
-                translation_db = CommentList.query.filter_by(comment=translation_object).first()
+                translation_db = session.query(CommentList).filter_by(comment=translation_object).first()
                 translation_db.translation = translation
-                db.session.commit()
+                session.commit()
             if table == "reply_list":
-                translation_db = ReplyList.query.filter_by(comment=translation_object).first()
+                translation_db = session.query(ReplyList).filter_by(comment=translation_object).first()
                 translation_db.translation = translation
-                db.session.commit()
+                session.commit()

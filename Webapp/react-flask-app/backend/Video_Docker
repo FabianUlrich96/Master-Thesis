@@ -4,6 +4,6 @@ COPY requirements.txt /
 RUN pip install -r /requirements.txt
 
 ADD . /backend
-WORKDIR backend/celery
+WORKDIR /backend
 
-CMD celery -A tasks worker --loglevel=info -Q translation
+CMD celery -A tasks worker --loglevel=info -Q video
