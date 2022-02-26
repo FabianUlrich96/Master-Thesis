@@ -11,6 +11,7 @@ import urllib.parse
 import math
 import time
 from sqlalchemy import create_engine
+from database.models import Jobs
 
 log = logger.create_logger(__name__)
 
@@ -38,7 +39,7 @@ def prepare_translate(translation_object):
         return False, res
 
 
-def translate(to_translate, to_language="auto", from_language="auto"):
+def translate(to_translate, job_id, to_language="auto", from_language="auto"):
     agent = {'User-Agent':
                  "Mozilla/4.0 (\
                  compatible;\
@@ -69,30 +70,36 @@ def translate(to_translate, to_language="auto", from_language="auto"):
         return result
     except HTTPError as err:
         log.error(err)
+        job_db = session.query(Jobs).filter_by(job_id=job_id).first()
+        job_db.failed_at = to_translate
+        session.commit()
     except URLError as err:
         log.error(err)
+        job_db = session.query(Jobs).filter_by(job_id=job_id).first()
+        job_db.failed_at = to_translate
+        session.commit()
 
 
-def translate_text(comment_array, table):
+def translate_text(comment_array, table, job_id, count_now, count_total):
     for translation_object in comment_array:
         time.sleep(1)
         length_check, prepared_string = prepare_translate(translation_object)
 
         if length_check:
             if table == "comment_list":
-                translation = translate(translation_object, to_language="en")
+                translation = translate(translation_object, job_id, to_language="en")
                 translation_db = session.query(CommentList).filter_by(comment=translation_object).first()
                 translation_db.translation = translation
                 session.commit()
             if table == "reply_list":
-                translation = translate(translation_object, to_language="en")
+                translation = translate(translation_object, job_id, to_language="en")
                 translation_db = session.query(ReplyList).filter_by(comment=translation_object).first()
                 translation_db.translation = translation
                 session.commit()
         else:
             translation = ['']
             for translation_string in prepared_string:
-                translation_chunk = translate(translation_string, to_language="en")
+                translation_chunk = translate(translation_string, job_id, to_language="en")
                 translation.append(translation_chunk)
 
             translation = ' '.join(translation)
@@ -104,3 +111,10 @@ def translate_text(comment_array, table):
                 translation_db = session.query(ReplyList).filter_by(comment=translation_object).first()
                 translation_db.translation = translation
                 session.commit()
+
+        count_now = count_now + 1
+        job_db = session.query(Jobs).filter_by(job_id=job_id).first()
+        job_db.status = count_now
+        session.commit()
+
+    return count_now

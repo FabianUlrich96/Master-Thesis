@@ -9,40 +9,41 @@ class Users(db.Model):
 
 
 class Apis(db.Model):
-    name = db.Column(db.String(200), primary_key=True)
+    api_id = db.Column('api_id', db.Integer, primary_key=True, autoincrement=True)
+    name = db.Column(db.String(200))
     token = db.Column(db.String(50))
-    service = db.Column(db.String(50))
 
-    def __init__(self, name, token, service):
+    def __init__(self, api_id, name, token):
+        self.api_id = api_id
         self.name = name
         self.token = token
-        self.service = service
 
 
 class Jobs(db.Model):
     job_id = db.Column('job_id', db.Integer, primary_key=True, autoincrement=True)
     job_type = db.Column(db.String(50))
-    api = db.Column(db.String(100), db.ForeignKey('apis.name'))
-    api_backref = db.relationship("Apis", backref=backref("apis", uselist=False))
     name = db.Column(db.String(100))
     date = db.Column(db.Date)
     query = db.Column(db.String(200))
     published_before = db.Column(db.Date)
     published_after = db.Column(db.Date)
+    status = db.Column(db.Integer)
+    total = db.Column(db.Integer)
     done = db.Column(db.Boolean)
-    failed = db.Column(db.Boolean)
+    failed_at = db.Column(db.Text)
 
-    def __init__(self, job_id, job_type, api, name, date, query, done, published_before, published_after, failed):
+    def __init__(self, job_id, job_type, name, date, query, status, total, done, published_before, published_after, failed_at):
         self.job_id = job_id
         self.job_type = job_type
-        self.api = api
         self.name = name
         self.date = date
         self.query = query
         self.published_before = published_before
         self.published_after = published_after
+        self.status = status
+        self.total = total
         self.done = done
-        self.failed = failed
+        self.failed_at = failed_at
 
 
 class VideoList(db.Model):
@@ -64,7 +65,8 @@ class VideoList(db.Model):
 
 
 class CommentList(db.Model):
-    video_id = db.Column(db.String(50), primary_key=True)
+    table_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    video_id = db.Column(db.String(50))
     job = db.Column(db.Integer, db.ForeignKey('jobs.job_id'))
     page = db.Column(db.Text)
     date = db.Column(db.Date)
@@ -77,7 +79,8 @@ class CommentList(db.Model):
     comment = db.Column(db.Text)
     translation = db.Column(db.Text)
 
-    def __init__(self, video_id, job, page, date, author, likes, published, updated, reply_count, comment_id, comment, translation):
+    def __init__(self, table_id, video_id, job, page, date, author, likes, published, updated, reply_count, comment_id, comment, translation):
+        self.table_id = table_id
         self.video_id = video_id
         self.job = job
         self.page = page

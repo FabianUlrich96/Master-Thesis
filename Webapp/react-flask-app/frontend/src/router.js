@@ -6,8 +6,6 @@ import CommentScraper from "./components/pages/CommentScraper"
 import VideoLoader from "./components/pages/VideoLoader"
 import Translator from "./components/pages/Translator"
 import CreateApi from "./components/pages/CreateApi"
-import ViewApis from "./components/pages/ViewApis"
-
 
 const routes = {
     "/": () => <Login/>,
@@ -16,8 +14,7 @@ const routes = {
     "/createcommentjob": () => <CommentScraper/>,
     "/loadvideos": () => <VideoLoader/>,
     "/translator": () => <Translator/>,
-    "/createapi": () => <CreateApi/>,
-    "/viewapis": () => <ViewApis/>
+    "/createapi": () => <CreateApi/>
 }
 
 export default routes

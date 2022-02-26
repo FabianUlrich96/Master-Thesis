@@ -14,14 +14,31 @@ apis_blueprint = Blueprint('apis_blueprint', __name__, template_folder='template
 @apis_blueprint.route('/apis', methods=['GET', 'POST', 'DELETE'])
 def apis_all():
     if request.method == 'GET':
-        apis = db.session.query(Apis).all()
-        return jsonify(apis_schema.dump(apis))
+        apis = []
+        for value in db.session.query(Apis.name).distinct():
+            log.info(value)
+            apis.append(value)
+
+        to_list = [x[0] for x in apis]
+        log.info(to_list)
+        return jsonify(to_list)
 
     if request.method == 'POST':
         data = request.json
+
+        name = data["name"]
+        token = data["token"]
+        token_list = token.split(",")
+        log.info(token_list)
+        data_list = []
+
+        for element in token_list:
+            data_list.append([name, element])
+        columns = ['name', 'token']
+        df = pd.DataFrame(data_list, columns=columns)
+        log.info(df)
         try:
-            apis_df = pd.DataFrame(data, index=[0])
-            apis_df.to_sql('apis', con=db.engine, if_exists='append', chunksize=1000, index=False)
+            df.to_sql('apis', con=db.engine, if_exists='append', chunksize=1000, index=False)
         except IntegrityError as e:
             log.error(e)
         return 'Ok'

@@ -5,9 +5,10 @@ from celery.utils.log import get_task_logger
 from logic.YouTubeDataApi import execute_search_query
 from logic.YouTubeDataApi import get_comments
 from logic.GoogleTranslate import translate_text
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, func, select
 from database.models import CommentList
 from database.models import ReplyList
+from database.models import Jobs
 
 
 log = logger.create_logger(__name__)
@@ -20,18 +21,54 @@ session = Session()
 
 
 @celery.task(queue="video")
-def query_videos(key, job_id, query, published_before, published_after):
-    execute_search_query(key, job_id, query, published_before, published_after)
+def query_videos(keys, job_id, query, published_before, published_after):
+    execute_search_query(keys, job_id, query, published_before, published_after)
+    job_db = session.query(Jobs).filter_by(job_id=job_id).first()
+    job_db.done = True
+    session.commit()
 
 
 @celery.task(queue="comments")
-def query_comments(key, job_id, video_ids):
+def query_comments(keys, job_id, video_ids):
+
+    count_total = len(video_ids)
+    count_now = 0
+    job_db = session.query(Jobs).filter_by(job_id=job_id).first()
+    job_db.status = count_now
+    job_db.total = count_total
+    session.commit()
     for video in video_ids:
-        get_comments(key, job_id, video)
+        get_comments(keys, job_id, video)
+        count_now = count_now + 1
+        job_db = session.query(Jobs).filter_by(job_id=job_id).first()
+        job_db.status = count_now
+        session.commit()
+
+    job_db = session.query(Jobs).filter_by(job_id=job_id).first()
+    job_db.done = True
+    session.commit()
 
 
 @celery.task(queue="translation")
-def translate_comments(selected_job):
+def translate_comments(selected_job, job_id):
+    count_comments = (
+        session.execute(select(func.count()).select_from(select(CommentList.video_id).filter(
+            CommentList.translation == None, CommentList.job == selected_job).subquery())).scalar_one()
+    )
+
+    count_replies = (
+        session.execute(select(func.count()).select_from(select(ReplyList.video_id).filter(
+            ReplyList.translation == None, ReplyList.job == selected_job).subquery())).scalar_one()
+    )
+
+    log.info(count_comments)
+    log.info(count_replies)
+    count_total = count_comments + count_replies
+    count_now = 0
+    job_db = session.query(Jobs).filter_by(job_id=job_id).first()
+    job_db.status = count_now
+    job_db.total = count_total
+    session.commit()
     execute = True
     limit = 1000
     offset = 0
@@ -44,16 +81,12 @@ def translate_comments(selected_job):
         else:
             offset = offset + 1000
             raw_comments = [item[0] for item in comments]
-            translate_text(raw_comments, "comment_list")
+            count_now = translate_text(raw_comments, "comment_list", job_id, count_now, count_total)
 
-
-@celery.task(queue="translation")
-def translate_replies(selected_job):
     execute = True
     limit = 1000
     offset = 0
     while execute:
-
         comments = session.query(ReplyList.comment).filter(
             ReplyList.translation == None, ReplyList.job == selected_job).limit(limit).offset(offset).all()
         if not comments:
@@ -62,6 +95,9 @@ def translate_replies(selected_job):
             offset = offset + 1000
             raw_comments = [item[0] for item in comments]
             log.info(raw_comments)
-            translate_text(raw_comments, "reply_list")
+            count_now = translate_text(raw_comments, "reply_list", job_id, count_now, count_total)
 
+    job_db = session.query(Jobs).filter_by(job_id=job_id).first()
+    job_db.done = True
+    session.commit()
 

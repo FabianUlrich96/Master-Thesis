@@ -44,10 +44,7 @@ function Header() {
                                 </NavDropdown>
                                 <Nav.Link href="/createcommentjob">Comment Scraper</Nav.Link>
                                 <Nav.Link href="/translator">Translator</Nav.Link>
-                                <NavDropdown title="API" id="basic-nav-dropdown">
-                                    <NavDropdown.Item href="/createapi">Create API</NavDropdown.Item>
-                                    <NavDropdown.Item href="/viewapis">View APIs</NavDropdown.Item>
-                                </NavDropdown>
+                                <Nav.Link href="/createapi">Create API</Nav.Link>
                                 <Form className="ms-auto">
                                     <Button className={"headerButton"} onClick={logout}>Logout {name}</Button>
                                 </Form>

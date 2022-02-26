@@ -41,8 +41,7 @@ function CommentScraper() {
             const result_data = response.data
             result_data.forEach(api => {
                 apis.push({
-                    rendered: <option key={api.name}>{api.name}</option>,
-                    service: api.service
+                    rendered: <option key={api}>{api}</option>,
                 })
             })
             setApisDatabase(apis)
@@ -150,12 +149,12 @@ function CommentScraper() {
                                 </Form.Control>
                             </Form.Group>
                             <Form.Group className="mb-3" controlId="formApi">
-                                <Form.Label>API</Form.Label>
+                                <Form.Label>API-Group</Form.Label>
                                 <Form.Control as='select' onChange={e => setField('api', e.target.value)}
                                               isInvalid={!!errors.api}
                                 >
-                                    <option value=''>Select an api:</option>
-                                    {apisDatabase.filter(option => option.service === "youtube").map(option => option.rendered)}
+                                    <option value=''>Select a API-Group:</option>
+                                    {apisDatabase.map(option => option.rendered)}
                                 </Form.Control>
                             </Form.Group>
                             <Button variant="primary" type="submit">

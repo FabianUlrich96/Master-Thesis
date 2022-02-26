@@ -1,7 +1,7 @@
 import {Button, Col, Form, Row} from "react-bootstrap"
 import axios from "axios"
 import {useState} from "react"
-import {A, navigate} from "hookrouter"
+import {A} from "hookrouter"
 import {toast, ToastContainer} from "react-toastify"
 import 'react-toastify/dist/ReactToastify.css'
 
@@ -25,15 +25,13 @@ function CreateApi() {
     }
 
     const findFormErrors = () => {
-        const {name, token, service} = form
+        const {name, token} = form
         const newErrors = {}
         // name errors
         if (!name || name === '') newErrors.name = 'cannot be blank!'
         else if (name.length > 30) newErrors.name = 'name is too long!'
         // token errors
         if (!token || token === '') newErrors.token = 'cannot be blank!'
-        // service errors
-        if (!service || service === '') newErrors.service = 'cannot be blank!'
 
         return newErrors
     }
@@ -48,7 +46,6 @@ function CreateApi() {
             let data = {
                 name: form.name,
                 token: form.token,
-                service: form.service
             }
 
 
@@ -100,16 +97,6 @@ function CreateApi() {
                                 <Form.Control type="text" placeholder="Enter API Token"
                                               onChange={e => setField('token', e.target.value)}
                                               isInvalid={!!errors.token}/>
-                            </Form.Group>
-                            <Form.Group className="mb-3" controlId="formService">
-                                <Form.Label>Service Name</Form.Label>
-                                <Form.Select aria-label="Default select example"
-                                             onChange={e => setField('service', e.target.value)}
-                                             isInvalid={!!errors.service}>
-                                    <option>Select a Service</option>
-                                    <option value="g_translate">Google Translate</option>
-                                    <option value="youtube">YouTube</option>
-                                </Form.Select>
                             </Form.Group>
 
                             <Button variant="primary" type="submit">

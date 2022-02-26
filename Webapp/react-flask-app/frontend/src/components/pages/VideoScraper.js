@@ -1,7 +1,7 @@
 import {Button, Col, Form, Row} from "react-bootstrap"
 import {useCallback, useEffect, useState} from "react"
 import axios from "axios"
-import {A, navigate} from "hookrouter"
+import {A} from "hookrouter"
 import {ToastContainer, toast} from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
 
@@ -19,8 +19,7 @@ function VideoScraper() {
             const result_data = response.data
             result_data.forEach(api => {
                 apis.push({
-                    rendered: <option key={api.name}>{api.name}</option>,
-                    service: api.service
+                    rendered: <option key={api}>{api}</option>,
                 })
             })
             setApisDatabase(apis)
@@ -128,13 +127,13 @@ function VideoScraper() {
                                               isInvalid={!!errors.name}/>
                             </Form.Group>
                             <Form.Group className="mb-3">
-                                <Form.Label>API</Form.Label>
+                                <Form.Label>API-Group</Form.Label>
 
                                 <Form.Control as='select' onChange={e => setField('api', e.target.value)}
                                               isInvalid={!!errors.api}
                                 >
-                                    <option value=''>Select an api:</option>
-                                    {apisDatabase.filter(option => option.service === "youtube").map(option => option.rendered)}
+                                    <option value=''>Select a API-Group:</option>
+                                    {apisDatabase.map(option => option.rendered)}
                                 </Form.Control>
 
                             </Form.Group>

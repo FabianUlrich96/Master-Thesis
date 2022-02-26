@@ -1,26 +1,32 @@
 import datetime
-import logging
 import googleapiclient.discovery
 from sqlalchemy.exc import IntegrityError
 import pandas as pd
 from googleapiclient.errors import HttpError
 import pause
 from datetime import datetime
+from sqlalchemy.orm import sessionmaker
 import logger
 from sqlalchemy import create_engine
 
-log = logger.create_logger(__name__)
+from database.models import Jobs
 
-logging.getLogger('googleapicliet.discovery_cache').setLevel(logging.ERROR)
+log = logger.create_logger(__name__)
 
 db = create_engine('mysql+pymysql://dataapi:fnmwm4d833834erjn@dataapidb/dataapi?charset=utf8mb4')
 
+Session = sessionmaker(bind=db)
+session = Session()
 
-def save_video_list(data):
+
+def save_video_list(data, job_id, page_token):
     try:
         data.to_sql('video_list', con=db.engine, if_exists='append', chunksize=1000, index=False)
     except IntegrityError as e:
         log.error(e)
+        job_db = session.query(Jobs).filter_by(job_id=job_id).first()
+        job_db.failed_at = page_token
+        session.commit()
 
 
 def new_connection(key):
@@ -33,20 +39,24 @@ def new_connection(key):
     return api_connection
 
 
-def execute_search_query(key, job_id, search_query, published_before, published_after):
-    api_connection = new_connection(key)
+def execute_search_query(keys, job_id, search_query, published_before, published_after):
     page_token = ""
     before_object = datetime.strptime(published_before, '%Y-%m-%d')
     after_object = datetime.strptime(published_after, '%Y-%m-%d')
     before = before_object.isoformat("T") + "Z"
     after = after_object.isoformat("T") + "Z"
-    while True:
-        try:
-            while page_token is not None:
+    try:
+        key_position = 0
+        while page_token is not None:
+            while True:
+                log.info("Key with this position is used")
+                log.info(key_position)
+                keys_length = len(keys) - 1
                 kind = []
                 result_id = []
                 response = None
                 try:
+                    api_connection = new_connection(keys[key_position])
                     request = api_connection.search().list(
                         part="id", q=search_query, maxResults=50, pageToken=page_token, publishedAfter=after,
                         publishedBefore=before, fields="items()"
@@ -55,6 +65,20 @@ def execute_search_query(key, job_id, search_query, published_before, published_
 
                 except HttpError as err:
                     log.error("HTTP Error: {}".format(err))
+                    status_code = err.resp.status
+                    if status_code == 403 and key_position < keys_length:
+                        key_position = key_position + 1
+                    else:
+                        now = datetime.now()
+                        current_time = now.strftime("%H:%M:%S")
+                        time_eod = '00:00:00'
+                        time_format = '%H:%M:%S'
+                        time_delta = datetime.strptime(time_eod, time_format) - datetime.strptime(current_time,
+                                                                                                  time_format)
+                        log.info("Idling for {} seconds".format(time_delta.seconds))
+                        pause.seconds(time_delta.seconds)
+                        key_position = 0
+                    continue
 
                 try:
                     page_token = response["nextPageToken"]
@@ -79,31 +103,24 @@ def execute_search_query(key, job_id, search_query, published_before, published_
                 now = datetime.now()
                 date_now = now.strftime("%Y/%m/%d")
                 dataframe['date'] = date_now
-                log.info(db)
-                save_video_list(dataframe)
+                save_video_list(dataframe, job_id, page_token)
+            break
 
-        except TypeError as err:
-            log.error("Next page failed with error: {}".format(err))
-        except HttpError as err:
-            log.error("Execution failed with error: {]".format(err))
-            log.info("")
-            now = datetime.now()
-            current_time = now.strftime("%H:%M:%S")
-            time_eod = '00:00:00'
-            time_format = '%H:%M:%S'
-            time_delta = datetime.strptime(current_time, time_format) - datetime.strptime(time_eod, time_format)
-            log.info("Idling for {} seconds".format(time_delta.seconds))
-            pause.seconds(time_delta.seconds)
-            continue
-
-        break
+    except TypeError as err:
+        log.error("Next page failed with error: {}".format(err))
+        job_db = session.query(Jobs).filter_by(job_id=job_id).first()
+        job_db.failed_at = page_token
+        session.commit()
 
 
-def save_reply_list(data):
+def save_reply_list(data, job_id, page_token):
     try:
         data.to_sql('reply_list', con=db.engine, if_exists='append', chunksize=1000, index=False)
     except IntegrityError as e:
         log.error(e)
+        job_db = session.query(Jobs).filter_by(job_id=job_id).first()
+        job_db.failed_at = page_token
+        session.commit()
 
 
 def save_comment_list(data):
@@ -113,13 +130,14 @@ def save_comment_list(data):
         log.error(e)
 
 
-def get_comments(key, job_id, video_id):
-    api_connection = new_connection(key)
+def get_comments(keys, job_id, video_id):
     page_token = ""
-
-    while True:
-        try:
-            while page_token is not None:
+    try:
+        key_position = 0
+        while page_token is not None:
+            while True:
+                log.info(key_position)
+                keys_length = len(keys) - 1
                 response = None
                 author = []
                 likes = []
@@ -128,15 +146,15 @@ def get_comments(key, job_id, video_id):
                 comment = []
                 reply_count = []
                 comment_id = []
-
                 parent_id = []
                 reply_author = []
                 reply_likes = []
                 reply_published = []
                 reply_updated = []
                 reply_comment = []
-
                 try:
+                    log.info(keys[key_position])
+                    api_connection = new_connection(keys[key_position])
                     request = api_connection.commentThreads().list(
                         maxResults=50,
                         part='snippet,replies',
@@ -145,14 +163,26 @@ def get_comments(key, job_id, video_id):
                     )
                     response = request.execute()
                 except HttpError as err:
-                    print(err)
-                # log.error("HTTP Error: {}".format(err))
+                    log.error("HTTP Error: {}".format(err))
+                    status_code = err.resp.status
+                    if status_code == 403 and key_position < keys_length:
+                        key_position = key_position + 1
+                    else:
+                        now = datetime.now()
+                        current_time = now.strftime("%H:%M:%S")
+                        time_eod = '00:00:00'
+                        time_format = '%H:%M:%S'
+                        time_delta = datetime.strptime(time_eod, time_format) - datetime.strptime(current_time,
+                                                                                                  time_format)
+                        log.info("Idling for {} seconds".format(time_delta.seconds))
+                        pause.seconds(time_delta.seconds)
+                        key_position = 0
+                    continue
+
                 try:
                     page_token = response["nextPageToken"]
                 except KeyError:
                     page_token = None
-
-                print(response)
 
                 for item in response['items']:
                     author.append(item['snippet']['topLevelComment']['snippet']['authorDisplayName'])
@@ -212,20 +242,11 @@ def get_comments(key, job_id, video_id):
                 date_now = now.strftime("%Y/%m/%d")
                 reply_dataframe['date'] = date_now
 
-                save_reply_list(reply_dataframe)
+                save_reply_list(reply_dataframe, job_id, page_token)
+            break
 
-        except TypeError as err:
-            log.error("Next page failed with error: {}".format(err))
-        except HttpError as err:
-            log.error("Execution failed with error: {]".format(err))
-            log.info("")
-            now = datetime.now()
-            current_time = now.strftime("%H:%M:%S")
-            time_eod = '00:00:00'
-            time_format = '%H:%M:%S'
-            time_delta = datetime.strptime(current_time, time_format) - datetime.strptime(time_eod, time_format)
-            log.info("Idling for {} seconds".format(time_delta.seconds))
-            pause.seconds(time_delta.seconds)
-            continue
-
-        break
+    except TypeError as err:
+        log.error("Next page failed with error: {}".format(err))
+        job_db = session.query(Jobs).filter_by(job_id=job_id).first()
+        job_db.failed_at = page_token
+        session.commit()

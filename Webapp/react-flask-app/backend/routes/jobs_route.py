@@ -49,16 +49,19 @@ def jobs_all():
         if "published_after" in all_data:
             published_after = all_data["published_after"]
         done = False
-        failed = False
+        failed = None
+        status = None
+        total = None
 
         if "api" in all_data:
             api = all_data["api"]
-            api_row = db.session.query(Apis).filter(Apis.name == api).first()
-            key = api_row.token
+            api_row = db.session.query(Apis.token).filter(Apis.name == api).all()
+            keys = [x[0] for x in api_row]
+            log.info(keys)
 
         job_id = ""
         try:
-            job = Jobs(None, job_type, api, name, date, query, done, published_before, published_after, failed)
+            job = Jobs(None, job_type, name, date, query, status, total, done, published_before, published_after, failed)
             db.session.add(job)
             db.session.flush()
             db.session.refresh(job)
@@ -73,10 +76,10 @@ def jobs_all():
 
             video_ids = [item[0] for item in videos]
 
-            task = celery_context.send_task('tasks.query_comments', queue="comments", kwargs={'key': key, 'job_id': job_id, 'video_ids': video_ids})
+            task = celery_context.send_task('tasks.query_comments', queue="comments", kwargs={'keys': keys, 'job_id': job_id, 'video_ids': video_ids})
 
         if job_type == "video":
-            task = celery_context.send_task('tasks.query_videos', queue="video", kwargs={'key': key, 'job_id': job_id, 'query': query,
+            task = celery_context.send_task('tasks.query_videos', queue="video", kwargs={'keys': keys, 'job_id': job_id, 'query': query,
                                                                           'published_before': published_before,
                                                                           'published_after': published_after})
 
@@ -96,8 +99,8 @@ def jobs_all():
                 log.error(e)
 
         if job_type == "translation":
-            task = celery_context.send_task('tasks.translate_comments', queue="translation", kwargs={'selected_job': selected_job})
-            reply_task = celery_context.send_task('tasks.translate_replies', queue="translation", kwargs={'selected_job': selected_job})
+            task = celery_context.send_task('tasks.translate_comments', queue="translation", kwargs={'selected_job': selected_job, 'job_id': job_id})
+            #reply_task = celery_context.send_task('tasks.translate_replies', queue="translation", kwargs={'selected_job': selected_job, 'job_id': job_id})
 
         return 'Ok'
     if request.method == 'DELETE':
