@@ -50,7 +50,7 @@ def jobs_all():
             published_after = all_data["published_after"]
         done = False
         failed = None
-        status = None
+        status = 0
         total = None
 
         if "api" in all_data:

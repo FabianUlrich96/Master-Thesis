@@ -16,9 +16,11 @@ function Translator() {
             console.log(response.data)
             const jobs = []
             const result_data = response.data
+
             result_data.forEach(job => {
+                const displayed_name = `${job.job_id} - ${job.name}`
                 jobs.push({
-                    rendered: <option key={job.name}>{job.job_id}</option>,
+                    rendered: <option key={job.name}>{displayed_name}</option>,
                     job_type: job.job_type
                 })
             })

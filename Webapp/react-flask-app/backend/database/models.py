@@ -96,7 +96,8 @@ class CommentList(db.Model):
 
 
 class ReplyList(db.Model):
-    video_id = db.Column(db.String(50), primary_key=True)
+    table_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    video_id = db.Column(db.String(50))
     job = db.Column(db.Integer, db.ForeignKey('jobs.job_id'))
     page = db.Column(db.Text)
     date = db.Column(db.Date)
@@ -108,7 +109,8 @@ class ReplyList(db.Model):
     comment = db.Column(db.Text)
     translation = db.Column(db.Text)
 
-    def __init__(self, video_id, job, page, date, parent_id, author, likes, published, updated, comment, translation):
+    def __init__(self, table_id, video_id, job, page, date, parent_id, author, likes, published, updated, comment, translation):
+        self.table_id = table_id
         self.video_id = video_id
         self.job = job
         self.page = page

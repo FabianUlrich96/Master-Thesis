@@ -1,8 +1,9 @@
 import axios from "axios"
 import BootstrapTable from "react-bootstrap-table-next"
 import {Col, ProgressBar, Row, Tab, Tabs} from "react-bootstrap"
-import {useEffect, useState, useCallback} from "react"
+import {useCallback, useEffect, useState} from "react"
 import {A} from 'hookrouter'
+
 function queryFormatter(cell, row) {
     if (row.query) {
         return (
@@ -15,14 +16,19 @@ function queryFormatter(cell, row) {
     }
 }
 function statusFormatter(cell, row){
-    if(row.status){
+    if(row.status && row.total){
     let status = cell
     let total = row.total
     let now = status/total*100
     let label = `${status}/${total}`
     return (
         <ProgressBar now={now} label={label}/>
-    )}else{
+    )}
+    if(row.status &&! row.total){
+        return (
+            <p>{cell}</p>
+        )}
+    else{
         return (
             <div style={{display: 'flex',  justifyContent:'center', alignItems:'center'}}>
                 <p>-</p>

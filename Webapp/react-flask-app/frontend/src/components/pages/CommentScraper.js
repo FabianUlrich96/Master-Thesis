@@ -21,8 +21,9 @@ function CommentScraper() {
             const jobs = []
             const result_data = response.data
             result_data.forEach(job => {
+                const displayed_name = `${job.job_id} - ${job.name}`
                 jobs.push({
-                    rendered: <option key={job.name}>{job.job_id}</option>,
+                    rendered: <option key={job.name}>{displayed_name}</option>,
                     job_type: job.job_type
                 })
             })
@@ -145,7 +146,7 @@ function CommentScraper() {
                                               isInvalid={!!errors.api}
                                 >
                                     <option value=''>Select a video job:</option>
-                                    {jobsDatabase.filter(option => option.job_type === "video").map(option => option.rendered)}
+                                    {jobsDatabase.filter(option => option.job_type === "video" || option.job_type === "video_loader").map(option => option.rendered)}
                                 </Form.Control>
                             </Form.Group>
                             <Form.Group className="mb-3" controlId="formApi">
