@@ -1,5 +1,0 @@
-https://github.com/sapped/Authenticated-Full-Stack-Streamlit
-https://discuss.streamlit.io/t/authenticated-full-stack-streamlit-with-docker/8307
-
-Multi-page app:
-https://medium.com/@u.praneel.nihar/building-multi-page-web-app-using-streamlit-7a40d55fa5b4
