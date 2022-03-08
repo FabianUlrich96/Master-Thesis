@@ -73,8 +73,8 @@ async def query_videos(dataframe, videos, filename, to_code):
 
 async def main():
     dataframe, filename = load_dataframe()
-    threshold = 50
-    dataframe.loc[dataframe['comment_count'] < threshold, 'valid'] = 'valid'
+    threshold = 51
+    dataframe.loc[dataframe['comment_count'] < threshold, 'valid'] = 'comment threshold'
 
     print(dataframe)
     selected = dataframe.loc[dataframe['comment_count'] > threshold]["video_id"]
