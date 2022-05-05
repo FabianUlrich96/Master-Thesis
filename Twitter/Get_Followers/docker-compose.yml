@@ -1,0 +1,10 @@
+version: '3.6'
+services:
+  twitter_follower:
+    build: 
+        context: ./tool
+        dockerfile: twitter_follower
+    container_name: twitter_follower
+    
+    volumes:
+      - ./tool:/tool
