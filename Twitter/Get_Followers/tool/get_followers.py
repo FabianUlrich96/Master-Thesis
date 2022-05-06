@@ -34,7 +34,7 @@ def get_followers(dataframe):
     except:
         next_token = None
     iterations = 0
-    while (next_token != None) and (iterations <= 9):
+    while (next_token != None) and (iterations <= 2):
         print(next_token)
         response = client.get_users_followers(user_id, max_results=1000, pagination_token=next_token)
 
