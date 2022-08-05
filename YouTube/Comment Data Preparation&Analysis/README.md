@@ -18,3 +18,6 @@ Reads raw comment and reply files and:
 
 ## topic_map.xlsx
 * Label for topic numbers. 
+
+## SentimentTool_Error-Rate.ipynb
+* Jupyter Notebook for evaluating [Vader Sentiment](https://github.com/cjhutto/vaderSentiment).
